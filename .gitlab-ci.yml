@@ -1,0 +1,12 @@
+stages:
+  - precommit
+
+include:
+  - project: "DevOps/gitlab-ci/job-templates/precommit"
+    ref: a549cf5c2df7a206f2c3c644f5fe6e6dac638345
+    file: ".gitlab-ci.yml"
+
+🚸 precommit:
+  variables:
+    SKIP: vlang-format
+  extends: .precommit
