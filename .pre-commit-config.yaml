@@ -17,10 +17,3 @@ repos:
       - id: detect-private-key
       - id: no-commit-to-branch
         args: [--branch, master, --branch, main]
-  - repo: local
-    hooks:
-      - id: vlang-format
-        name: vlang format
-        pass_filenames: false
-        language: python
-        entry: v fmt -w .
