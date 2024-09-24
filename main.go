@@ -10,13 +10,15 @@ import (
 )
 
 const (
-	oldUsername    = "arch"
-	loginUsername  = "login"
-	skipFilename   = "/opt/startup/skip_bootscript"
-	scriptFilename = "/opt/startup/script.sh"
-	testAddress    = "https://google.com"
-	versionEnvKey  = "ARCHAVISTO_VERSION"
-	scriptTemplate = `
+	oldUsername        = "arch"
+	loginUsername      = "login"
+	skipFilename       = "/opt/startup/skip_bootscript"
+	scriptFilename     = "/opt/startup/script.sh"
+	testAddress        = "https://google.com"
+	versionEnvKey      = "ARCHAVISTO_VERSION"
+	privateTokenEnvKey = "GITLAB_TOKEN"
+	repoURL            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packagesProfiles.json?ref=main"
+	scriptTemplate     = `
 #!/usr/bin/sh
 set -o errexit
 paru -Syu --skipreview
@@ -27,8 +29,6 @@ paru -S {{ range .Packages }}{{ . }} {{ end }}
 sudo usermod --login={{ .NewUsername }} --move-home --home=/home/{{ .NewUsername }} {{ .OldUsername }}
 {{ end }}
 sudo sed -i "s/{{ .LoginUsername }}/{{ .NewUsername }}/g" /etc/wsl.conf
-echo "Installation complete!"
-echo "You can now go back to Powershell and start WSL using the command: wsl -u {{ .NewUsername }} -d <distro-name> OR wsl -t <distro-name> and then wsl -d <distro-name>"
 touch {{ .SkipFile }}
 `
 )
@@ -41,27 +41,19 @@ type templateData struct {
 	Packages      []string
 }
 
-var (
-	commonPackages = []string{
-		"duf", "dust", "helm", "helmfile", "jq", "k9s", "kubectl", "micro", "navi", "pre-commit", "skaffold", "unzip", "wget",
-	}
-	devPackages = []string{
-		"gitleaks",
-	}
-	devOpsPackages = []string{
-		"ansible", "bottom", "htop", "iperf", "gnu-netcat", "net-tools", "pgcli", "screen", "sshuttle", "tcpdump", "inetutils", "terraform", "tmux",
-	}
-	profiles = []string{"Dev", "DevOps"}
-)
+type jsonData struct {
+	Common   []string            `json:"common"`
+	Profiles map[string][]string `json:"profiles"`
+}
 
 func main() {
 	// checks if the skip file exists
 	if _, err := os.Stat(skipFilename); err == nil {
-		color.Yellow("Skipping script execution due to skip file \u1F680 \n")
+		color.Yellow("Skipping script execution due to skip file %s,\n", skipFilename)
 		os.Exit(1)
 	}
 
-	color.Green("Welcome to ArchAvisto\n")
+	color.Cyan("Welcome to ArchAvisto!\n")
 
 	version := os.Getenv(versionEnvKey)
 	if version != "" {
@@ -81,15 +73,34 @@ func main() {
 	// Ask for the new username
 	newUsername := userNamePrompt(oldUsername)
 
+	// Fetching and parsing json file
+	privateToken := os.Getenv(privateTokenEnvKey)
+	if privateToken == "" {
+		color.Red("Missing the GITLAB_TOKEN environment variable, cannot fetch the packages json file. Exiting...")
+		os.Exit(1)
+	}
+	content, err := fetchJsonFiles(repoURL, privateToken)
+	if err != nil {
+		color.Red("Error while fetching the packages json file, it may be an internal Gitlab issue, please contact a DevOps internal member or IT for support: %s", err)
+		os.Exit(1)
+	}
+	jsonData, err := parseJsonFile(content)
+	if err != nil {
+		color.Red("Error while parsing the packages json file: %s", err)
+		os.Exit(1)
+	}
+
+	// Get the profiles
+	var profiles []string
+	for profile := range jsonData.Profiles {
+		profiles = append(profiles, profile)
+	}
+
+	commonPackages := jsonData.Common
+
 	// Ask for the profile and set packages list accordingly
 	chosenProfile := profilePrompt(profiles)
-
-	packageList := commonPackages
-	if chosenProfile == "Dev" {
-		packageList = append(packageList, devPackages...)
-	} else {
-		packageList = append(packageList, devOpsPackages...)
-	}
+	packageList := append(commonPackages, jsonData.Profiles[chosenProfile]...)
 
 	// Prompt package list
 	packageToInstall := packagesPrompt(packageList)
