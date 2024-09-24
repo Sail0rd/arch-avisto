@@ -1,8 +1,9 @@
 module bootscript
 
-go 1.23.1
+go 1.21.11
 
 require (
+	github.com/bitfield/script v0.23.0
 	github.com/cqroot/prompt v0.9.3
 	github.com/fatih/color v1.17.0
 )
@@ -15,6 +16,8 @@ require (
 	github.com/charmbracelet/lipgloss v0.9.1 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/cqroot/multichoose v0.1.1 // indirect
+	github.com/itchyny/gojq v0.12.13 // indirect
+	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -29,4 +32,5 @@ require (
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.8.0 // indirect
 	golang.org/x/text v0.3.8 // indirect
+	mvdan.cc/sh/v3 v3.7.0 // indirect
 )

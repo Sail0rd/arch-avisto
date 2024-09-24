@@ -18,6 +18,7 @@ bin/
 
 # ENV
 .env
+.envrc
 
 # vweb and database
 *.db

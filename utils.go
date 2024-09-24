@@ -1,7 +1,11 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"io"
+	"net/http"
 	"os"
 	"regexp"
 
@@ -9,6 +13,10 @@ import (
 	"github.com/cqroot/prompt/multichoose"
 	"github.com/fatih/color"
 )
+
+type FileResponse struct {
+	Content string `json:"content"` // Base64 encoded content
+}
 
 func checkError(err error, message string) {
 	if err != nil {
@@ -47,6 +55,49 @@ func userNamePrompt(defaultUsername string) string {
 		return defaultUsername
 	}
 	return name
+}
+
+func fetchJsonFiles(url string, privateToken string) (string, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Add("Private-Token", privateToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	} else if resp.StatusCode != 200 {
+		color.Red("Failed to fetch packages json file: %s", resp.Status)
+		return "", errors.New("Failed to fetch packages json file")
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var fileresp FileResponse
+	error := json.Unmarshal(body, &fileresp)
+	if error != nil {
+		return "", err
+	}
+	// Decoding file content
+	fileContent, err := base64.StdEncoding.DecodeString(fileresp.Content)
+	if err != nil {
+		return "", err
+	}
+	return string(fileContent), nil
+}
+
+func parseJsonFile(jsonFile string) (jsonData, error) {
+	var data jsonData
+	err := json.Unmarshal([]byte(jsonFile), &data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 func profilePrompt(profiles []string) string {

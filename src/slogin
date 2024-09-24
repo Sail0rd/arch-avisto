@@ -1,7 +1,0 @@
-#!/usr/bin/sh
-
-set -o errexit
-
-export ARCHAVISTO_VERSION=1.1.2
-/opt/startup/bootscript
-/opt/startup/script.sh

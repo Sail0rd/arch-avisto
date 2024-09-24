@@ -1,12 +1,84 @@
 stages:
   - precommit
+  - build
+  - sign
+  - publish
+
+variables:
+  PACKAGE_FILE: "bootscript"
+  PACKAGE_SIGNATURE: "bootscript.sig"
 
 include:
   - project: "DevOps/gitlab-ci/job-templates/precommit"
     ref: a549cf5c2df7a206f2c3c644f5fe6e6dac638345
     file: ".gitlab-ci.yml"
 
+.default:
+  interruptible: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_PIPELINE_SOURCE == "web"
+      variables:
+        PACKAGE_VERSION: ${CI_COMMIT_SHORT_SHA}
+    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-.*)?$/
+      variables:
+        PACKAGE_VERSION: ${CI_COMMIT_TAG}
+
+
 🚸 precommit:
-  variables:
-    SKIP: vlang-format
-  extends: .precommit
+  extends:
+    - .precommit
+    - .default
+  rules: !reference [.default, rules]
+
+🛠️ build:
+  stage: build
+  extends: .default
+  image: golang:1.23@sha256:2fe82a3f3e006b4f2a316c6a21f62b66e1330ae211d039bb8d1128e12ed57bf1
+  script:
+    - go mod download
+    - go build -o $PACKAGE_FILE
+  artifacts:
+    paths:
+      - $PACKAGE_FILE
+  rules: !reference [.default, rules]
+
+✒️ sign:
+  stage: sign
+  extends: .default
+  image: devopscrc/gpg-curl:v1@sha256:3b0d9b15478e7c5e9c7dd0778e4c9cfb748ec14152c9d8c3c913655ccdd9bd01
+  script:
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - gpg --batch --import $CI_PROJECT_DIR/.secure_files/gpg_private_key.asc
+    - gpg --batch --yes --detach-sign --armor -o $PACKAGE_SIGNATURE $PACKAGE_FILE
+  artifacts:
+    paths:
+      - $PACKAGE_SIGNATURE
+      - $PACKAGE_FILE
+  rules: !reference [.default, rules]
+
+🚀 publish:
+  stage: publish
+  extends: .default
+  image: registry.gitlab.com/gitlab-ci-utils/curl-jq:3.0.4@sha256:51b1d34e833d541c3e7d4e5141c670e896ce8b9d110a0ca4b93c2fedc6c3d4b7
+  script:
+    # Push the package and signature to the GitLab Packages registry
+    - |
+      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}"
+      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}"
+    # Exit the pipeline if there is no CI_COMMIT_TAG set
+    - |
+      if [ -z "$CI_COMMIT_TAG" ]; then
+        exit 0
+      fi
+    # Delete existing package with the version 'latest' as it's impossible to get the latest package automatically
+    # See https://forum.gitlab.com/t/how-to-fetch-latest-package-version-generic-packages-repository/49948 for more infos
+    - |
+      OLD_PACKAGE_ID=$(curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?order_by=created_at&sort=desc" | jq '.[] | select(.name == "${PACKAGE_FILE}" and .version == "latest") | .id') || true
+      OLD_PACKAGE_SIGNATURE_ID=$(curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?order_by=created_at&sort=desc" | jq '.[] | select(.name == "${PACKAGE_SIGNATURE}" and .version == "latest") | .id') || true
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${OLD_PACKAGE_ID}" -X DELETE
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${OLD_PACKAGE_SIGNATURE_ID}" -X DELETE
+  # Upload the new package and signature with the version 'latest'
+    - |
+      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_FILE}/latest/${PACKAGE_FILE}"
+      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_SIGNATURE}/latest/${PACKAGE_SIGNATURE}"
+  rules: !reference [.default, rules]
