@@ -1,5 +1,0 @@
-stateDiagram-v2
-    [*] --> /opt/startup/slogin : start user shell (user named login is the default user)
-    /opt/startup/slogin --> /opt/startup/bootscript : fetch and verify binary from Gitlab
-    /opt/startup/bootscript --> /opt/startup/script.sh : prompts the user and generate
-    /opt/startup/script.sh --> [*] : install packages, change default user, etc.

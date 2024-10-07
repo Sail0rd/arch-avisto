@@ -17,7 +17,7 @@ const (
 	testAddress        = "https://google.com"
 	versionEnvKey      = "ARCHAVISTO_VERSION"
 	privateTokenEnvKey = "GITLAB_TOKEN"
-	repoURL            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packagesProfiles.json?ref=main"
+	repoURL            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=main"
 	scriptTemplate     = `
 #!/usr/bin/sh
 set -o errexit
@@ -41,9 +41,17 @@ type templateData struct {
 	Packages      []string
 }
 
+// jsonData is the struct that represents the json file
+// {"common": [{"duf": "fancy disk usage"}], "profiles": { "dev": [{"gitleaks": "detects secrets"}], "devops": [{"ansible": "automation"}] }}
+
+type pkgData struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type jsonData struct {
-	Common   []string            `json:"common"`
-	Profiles map[string][]string `json:"profiles"`
+	Common   []pkgData            `json:"common"`
+	Profiles map[string][]pkgData `json:"profiles"`
 }
 
 func main() {
@@ -96,14 +104,23 @@ func main() {
 		profiles = append(profiles, profile)
 	}
 
-	commonPackages := jsonData.Common
+	var commonPackages []string
+	var packageDescription []string
+	for _, pkg := range jsonData.Common {
+		commonPackages = append(commonPackages, pkg.Name)
+		packageDescription = append(packageDescription, pkg.Description)
+	}
 
 	// Ask for the profile and set packages list accordingly
 	chosenProfile := profilePrompt(profiles)
-	packageList := append(commonPackages, jsonData.Profiles[chosenProfile]...)
+	packageList := commonPackages
+	for _, pkg := range jsonData.Profiles[chosenProfile] {
+		packageList = append(packageList, pkg.Name)
+		packageDescription = append(packageDescription, pkg.Description)
+	}
 
 	// Prompt package list
-	packageToInstall := packagesPrompt(packageList)
+	packageToInstall := packagesPrompt(packageList, packageDescription)
 
 	// End of interactive prompts
 	data := templateData{

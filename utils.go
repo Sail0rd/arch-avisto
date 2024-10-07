@@ -9,8 +9,9 @@ import (
 	"os"
 	"regexp"
 
+	"multichoice"
+
 	"github.com/cqroot/prompt"
-	"github.com/cqroot/prompt/multichoose"
 	"github.com/fatih/color"
 )
 
@@ -37,7 +38,7 @@ func updatePrompt() {
 
 // Ensure that the username is Unix compliant
 func validateUsername(input string) error {
-	var validUsernameRegex = regexp.MustCompile(`^[a-z_][a-z0-9_-]{0,31}[^-]$`)
+	var validUsernameRegex = regexp.MustCompile(`^[a-z_][a-z0-9_-]{0,30}[^-]$`)
 
 	if !validUsernameRegex.MatchString(input) {
 		return errors.New("invalid username")
@@ -106,11 +107,12 @@ func profilePrompt(profiles []string) string {
 	return result
 }
 
-func packagesPrompt(packages []string) []string {
-	result, err := prompt.New().Ask(" Select the packages you want to install").MultiChoose(
-		packages,
-		multichoose.WithTheme(multichoose.ThemeDot),
-	)
-	checkError(err, "Prompt failed")
+func packagesPrompt(packages, description []string) []string {
+	title := "Select the packages you want to install with Spacebar and confirm with Enter"
+	result, err := multichoice.Run(packages, description, title)
+	if err != nil {
+		color.Red("Failed to select packages: %s", err)
+		os.Exit(1)
+	}
 	return result
 }
