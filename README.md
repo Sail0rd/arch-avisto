@@ -107,7 +107,7 @@ When the changes you want to make are on the image itself:
 1. Make at least 1 person test it
 1. Change SharePoint link on the documentation (step 2) to point to the new version
 
-```bash
+```python
 # Export the distribution as a compressed archive
 wsl --export <distro-name> .\arch_avisto_v<semver>.tar
 & "C:\Program Files\7-Zip\7z.exe" a .\arch_avisto_v<semver>.tar.gz .\arch_avisto_v<semver>.tar
@@ -116,14 +116,16 @@ wsl --export <distro-name> .\arch_avisto_v<semver>.tar
 ### Bootscript
 
 First, follow all the Avisto guidelines for a new feature (new issue -> create MR/branch -> review -> merge)
+
 Next, here are the steps to test your image:
 
 1. Check that the pipeline pass once you committed your changes
 1. Use the [documentation](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#%F0%9F%86%95-Import-Avisto-image-[Recommended])
    to import the image, then login using `wsl -u root -d <distro-name>`
-1. Modify the `curl` statement in the `/opt/startup/slogin` to fetch your version of the bootscript
-   (the version name is the short commit sha of your commit by default, you can get it using `git log --oneline`)
+1. Wait for the pipeline to pass (build & sign & publish)
+1. Modify the `curl` statements in the `/opt/startup/slogin` to fetch your version of the bootscript
+   (the version name is the short commit sha of your commit—copy the one from Gitlab as it has one more character than on Git)
    for instance, replace `https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/latest/bootscript`
-   by `https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<your short commit sha>/bootscript`
+   by `https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<your short commit sha>/bootscript` in both lines.
 1. Run `su login` and verify all your changes are working properly
 1. If everything is to your liking you can unregister the wsl distro (using `wsl --unregister <distro-name>`), then ask someone to review your MR and you are good to go!
