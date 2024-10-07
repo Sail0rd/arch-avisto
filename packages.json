@@ -1,0 +1,118 @@
+{
+  "common": [
+    {
+      "name": "duf",
+      "description": "fancy disk usage"
+    },
+    {
+      "name": "dust",
+      "description": "a more intuitive version of du"
+    },
+    {
+      "name": "helm",
+      "description": "package manager for Kubernetes"
+    },
+    {
+      "name": "helmfile",
+      "description": "declarative management of Helm charts"
+    },
+    {
+      "name": "jq",
+      "description": "command-line JSON processor"
+    },
+    {
+      "name": "k9s",
+      "description": "kubernetes TUI to manage your clusters"
+    },
+    {
+      "name": "kubectl",
+      "description": "kubernetes command-line tool"
+    },
+    {
+      "name": "micro",
+      "description": "a modern and intuitive terminal-based text editor"
+    },
+    {
+      "name": "tldr",
+      "description": "command line cheat sheet"
+    },
+    {
+      "name": "pre-commit",
+      "description": "framework for managing and maintaining multi-language pre-commit hooks"
+    },
+    {
+      "name": "skaffold",
+      "description": "tool for continuous development on Kubernetes"
+    },
+    {
+      "name": "unzip",
+      "description": "decompress .zip files"
+    },
+    {
+      "name": "wget",
+      "description": "download files from the web"
+    }
+  ],
+  "profiles": {
+    "dev": [
+      {
+        "name": "gitleaks",
+        "description": "detects secrets and sensitive data in Git repositories"
+      }
+    ],
+    "devops": [
+      {
+        "name": "ansible",
+        "description": "automation tool for configuration management"
+      },
+      {
+        "name": "bottom",
+        "description": "a minimalistic terminal UI for system monitoring"
+      },
+      {
+        "name": "htop",
+        "description": "interactive process viewer for Unix systems"
+      },
+      {
+        "name": "iperf",
+        "description": "network performance measurement tool"
+      },
+      {
+        "name": "gnu-netcat",
+        "description": "network utility for reading/writing data across networks"
+      },
+      {
+        "name": "net-tools",
+        "description": "collection of tools for networking tasks"
+      },
+      {
+        "name": "pgcli",
+        "description": "postgreSQL command line interface with auto-completion"
+      },
+      {
+        "name": "screen",
+        "description": "terminal multiplexer that allows for managing multiple sessions"
+      },
+      {
+        "name": "sshuttle",
+        "description": "transparent proxy server for SSH"
+      },
+      {
+        "name": "tcpdump",
+        "description": "packet analyzer for network traffic"
+      },
+      {
+        "name": "inetutils",
+        "description": "collection of common network programs"
+      },
+      {
+        "name": "terraform",
+        "description": "tool for building, changing, and versioning infrastructure"
+      },
+      {
+        "name": "tmux",
+        "description": "terminal multiplexer for managing multiple terminal sessions"
+      }
+    ]
+  }
+}

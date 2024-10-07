@@ -64,7 +64,7 @@ Other files:
 > located in the Gitlab repository in order to prompt the user the latest
 > packages without having to rebuild an image
 
-![](./mermaid.png)
+[![](https://mermaid.ink/img/pako:eNptUctqxDAM_BXhU1uSDfToQ0-FfkCPTQ-KrSSmfuHHQlj236skSx9sfJLl0YxmfBEqaBJS5IKFXg1OCV17fu498Pl4-oS2fYEuxNIxIpUau2zDZDxI2BpQMyXIM1kLD1vt0ZGGHWQylJlA04jV7tjHnfqI8k5qCKFklUwsLDdSUTOg13CmZMYFBuMxLTCm4ODNFIvDAfUfinsnW_-UZ2aPzBLLvu5mYxWayFPiXI5W_pldadegJBjPr5xDRPWFE-UG1Ix--u-_AfZxEo1wlBwazdlfVv5esLSjXkgubwO96P2VoVhLeF-8ErKkSo1IoU6zkCPazLca9e_f3brXb47no_4?type=png)](https://mermaid.live/edit#pako:eNptUctqxDAM_BXhU1uSDfToQ0-FfkCPTQ-KrSSmfuHHQlj236skSx9sfJLl0YxmfBEqaBJS5IKFXg1OCV17fu498Pl4-oS2fYEuxNIxIpUau2zDZDxI2BpQMyXIM1kLD1vt0ZGGHWQylJlA04jV7tjHnfqI8k5qCKFklUwsLDdSUTOg13CmZMYFBuMxLTCm4ODNFIvDAfUfinsnW_-UZ2aPzBLLvu5mYxWayFPiXI5W_pldadegJBjPr5xDRPWFE-UG1Ix--u-_AfZxEo1wlBwazdlfVv5esLSjXkgubwO96P2VoVhLeF-8ErKkSo1IoU6zkCPazLca9e_f3brXb47no_4)
 
 ### CI/CD
 
@@ -85,27 +85,45 @@ another package that will have the same version name.
 > This can lead to a situation where the latest version is deleted but not pushed.
 > That's why it is important to ensure the pipeline finishes successfully.
 
-## Step-by-step guide to ship new version
+## Step-by-step releases guide
+
+### Arch Avisto image
+
+When the changes you want to make are on the image itself:
 
 > Before starting be sure you run the latest WSL version (see [doc](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#Install%2FUpdate-WSL-2)). \
 > Also install [7-zip](https://www.7-zip.org/).
 
-1. Download the latest version from [SharePoint](https://groupadvans.sharepoint.com/:f:/s/DevOpsSupport/ErkpQpmnXEtNnZbT5MnMVE8BOESKO38rK_BXh-luBE0gTA?e=6HTMM0)
-2. Use the [documentation](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#%F0%9F%86%95-Import-Avisto-image-[Recommended])
+1. Use the [documentation](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#%F0%9F%86%95-Import-Avisto-image-[Recommended])
    to import the image, then login using `wsl -u arch -d <distro-name>`
-3. Do your changes
-4. Update the version in `/opt/startup/slogin` file
-5. Prep the image by running `source /opt/prep.sh`
-6. Confirm your history is empty (^R), otherwise run the content of `/opt/prep.sh` manually
-7. Open a Powershell
-8. Shutdown wsl with `wsl --terminate <distro-name>`
-9. Export the distribution as a compressed archive (see the command below)
-10. Upload it to the SharePoint (step 1)
-11. Make at least 1 person test it
-12. Change SharePoint link on the documentation (step 2) to point to the new version
+1. Do your changes
+1. Update the version in `/opt/startup/slogin` file
+1. Prep the image by running `source /opt/prep.sh`
+1. Confirm your history is empty (^R), otherwise run the content of `/opt/prep.sh` manually
+1. Open a Powershell
+1. Shutdown wsl with `wsl --terminate <distro-name>`
+1. Export the distribution as a compressed archive (see the command below)
+1. Upload it to the SharePoint (step 1)
+1. Make at least 1 person test it
+1. Change SharePoint link on the documentation (step 2) to point to the new version
 
-```powershell
+```bash
 # Export the distribution as a compressed archive
 wsl --export <distro-name> .\arch_avisto_v<semver>.tar
 & "C:\Program Files\7-Zip\7z.exe" a .\arch_avisto_v<semver>.tar.gz .\arch_avisto_v<semver>.tar
 ```
+
+### Bootscript
+
+First, follow all the Avisto guidelines for a new feature (new issue -> create MR/branch -> review -> merge)
+Next, here are the steps to test your image:
+
+1. Check that the pipeline pass once you committed your changes
+1. Use the [documentation](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#%F0%9F%86%95-Import-Avisto-image-[Recommended])
+   to import the image, then login using `wsl -u root -d <distro-name>`
+1. Modify the `curl` statement in the `/opt/startup/slogin` to fetch your version of the bootscript
+   (the version name is the short commit sha of your commit by default, you can get it using `git log --oneline`)
+   for instance, replace `https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/latest/bootscript`
+   by `https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<your short commit sha>/bootscript`
+1. Run `su login` and verify all your changes are working properly
+1. If everything is to your liking you can unregister the wsl distro (using `wsl --unregister <distro-name>`), then ask someone to review your MR and you are good to go!
