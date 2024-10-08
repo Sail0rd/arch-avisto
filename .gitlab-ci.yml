@@ -28,7 +28,6 @@ include:
   extends:
     - .precommit
     - .default
-  rules: !reference [.default, rules]
 
 🛠️ build:
   stage: build
@@ -40,7 +39,6 @@ include:
   artifacts:
     paths:
       - $PACKAGE_FILE
-  rules: !reference [.default, rules]
 
 ✒️ sign:
   stage: sign
@@ -54,7 +52,6 @@ include:
     paths:
       - $PACKAGE_SIGNATURE
       - $PACKAGE_FILE
-  rules: !reference [.default, rules]
 
 🚀 publish:
   stage: publish
@@ -81,4 +78,3 @@ include:
     - |
       curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_FILE}/latest/${PACKAGE_FILE}"
       curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_SIGNATURE}/latest/${PACKAGE_SIGNATURE}"
-  rules: !reference [.default, rules]
