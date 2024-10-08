@@ -51,6 +51,10 @@
     {
       "name": "wget",
       "description": "download files from the web"
+    },
+    {
+      "name": "temux",
+      "description": "a terminal multiplexer"
     }
   ],
   "profiles": {
