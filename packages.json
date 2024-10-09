@@ -53,7 +53,7 @@
       "description": "download files from the web"
     },
     {
-      "name": "temux",
+      "name": "tmux",
       "description": "a terminal multiplexer"
     }
   ],
