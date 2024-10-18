@@ -58,6 +58,7 @@ func main() {
 	// checks if the skip file exists
 	if _, err := os.Stat(skipFilename); err == nil {
 		color.Yellow("Skipping script execution due to skip file %s,\n", skipFilename)
+		// exit 1 is important otherwise the slogin script will continue its execution
 		os.Exit(1)
 	}
 
@@ -112,11 +113,14 @@ func main() {
 	}
 
 	// Ask for the profile and set packages list accordingly
-	chosenProfile := profilePrompt(profiles)
+	chosenProfiles := profilePrompt(profiles)
+
 	packageList := commonPackages
-	for _, pkg := range jsonData.Profiles[chosenProfile] {
-		packageList = append(packageList, pkg.Name)
-		packageDescription = append(packageDescription, pkg.Description)
+	for _, profile := range chosenProfiles {
+		for _, pkg := range jsonData.Profiles[profile] {
+			packageList = append(packageList, pkg.Name)
+			packageDescription = append(packageDescription, pkg.Description)
+		}
 	}
 
 	// Prompt package list
