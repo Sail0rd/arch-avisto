@@ -4,6 +4,7 @@ BOLDRED="\e[1;31m"
 BOLDGREEN="\e[1;32m"
 BOLDCYAN="\e[1;36m"
 BOLDMAGENTA="\e[1;35m"
+BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
 
 set -o errexit
@@ -35,3 +36,4 @@ export ARCHAVISTO_VERSION=1.2.0
 
 echo -e "${BOLDGREEN}Installation complete!${ENDCOLOR}"
 echo -e "${BOLDCYAN}You can now go back to Powershell and start WSL using the commands ${BOLDMAGENTA}wsl -t <distro-name> ${BOLDCYAN}and then ${BOLDMAGENTA}wsl -d <distro-name>${ENDCOLOR}"
+echo -e "${BOLDRED}/!\\ this step is mandatory to complete the installation process and must be done before launching a new WSL instance ${ENDCOLOR}"

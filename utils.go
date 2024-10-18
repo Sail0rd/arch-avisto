@@ -9,9 +9,10 @@ import (
 	"os"
 	"regexp"
 
+	"inputs"
 	"multichoice"
+	"unichoice"
 
-	"github.com/cqroot/prompt"
 	"github.com/fatih/color"
 )
 
@@ -27,7 +28,7 @@ func checkError(err error, message string) {
 }
 
 func updatePrompt() {
-	result, err := prompt.New().Ask(" Do you agree to update the system packages").Choose([]string{"Yes", "No"})
+	result, err := unichoice.Run([]string{"Yes", "No"}, "Do you agree to update the system packages")
 	checkError(err, "Prompt failed")
 
 	if result == "No" {
@@ -36,24 +37,21 @@ func updatePrompt() {
 	}
 }
 
-// Ensure that the username is Unix compliant
-func validateUsername(input string) error {
-	var validUsernameRegex = regexp.MustCompile(`^[a-z_][a-z0-9_-]{0,30}[^-]$`)
-
-	if !validUsernameRegex.MatchString(input) {
-		return errors.New("invalid username")
-	}
-	return nil
-}
-
 func userNamePrompt(defaultUsername string) string {
-	name, err := prompt.New().Ask(" What should I call you ?").Input(defaultUsername)
+	name, err := inputs.Run(defaultUsername, "Enter your username")
 	checkError(err, "Prompt failed")
-	if validateUsername(name) != nil {
-		color.Red("Invalid username! your username must be Unix compliant, please try again.")
-		name = userNamePrompt(defaultUsername)
-	} else if name == "" {
+	if name == "" {
 		return defaultUsername
+	}
+	// Ensure the username is Unix compliant
+	validUsernameRegex := regexp.MustCompile(`^[a-z_][a-z0-9_-]{0,30}[^-]$`)
+	for !validUsernameRegex.MatchString(name) {
+		color.Red("Invalid username! your username must be Unix compliant, please try again.")
+		name, err = inputs.Run(defaultUsername, "Enter your username")
+		if name == "" {
+			return defaultUsername
+		}
+		checkError(err, "Prompt failed")
 	}
 	return name
 }
@@ -101,15 +99,20 @@ func parseJsonFile(jsonFile string) (jsonData, error) {
 	return data, nil
 }
 
-func profilePrompt(profiles []string) string {
-	result, err := prompt.New().Ask(" Choose a profile").Choose(profiles)
-	checkError(err, "Prompt failed")
+func profilePrompt(profiles []string) []string {
+	title := "Choose your profiles (Profiles are used to select the packages that might interest you)"
+	descriptions := make([]string, len(profiles)) // Empty descriptions for profiles
+	result, err := multichoice.Run(profiles, descriptions, title)
+	if err != nil {
+		color.Red("Failed to select profile: %s", err)
+		os.Exit(1)
+	}
 	return result
 }
 
-func packagesPrompt(packages, description []string) []string {
+func packagesPrompt(packages, descriptions []string) []string {
 	title := "Select the packages you want to install with Spacebar and confirm with Enter"
-	result, err := multichoice.Run(packages, description, title)
+	result, err := multichoice.Run(packages, descriptions, title)
 	if err != nil {
 		color.Red("Failed to select packages: %s", err)
 		os.Exit(1)
