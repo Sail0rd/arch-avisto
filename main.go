@@ -21,9 +21,9 @@ const (
 	scriptTemplate     = `
 #!/usr/bin/sh
 set -o errexit
-paru -Syu --skipreview
+sudo -u {{ .OldUsername }} paru -Syu --skipreview
 {{ if .Packages }}
-paru -S {{ range .Packages }}{{ . }} {{ end }}
+sudo -u {{ .OldUsername }} paru -S {{ range .Packages }}{{ . }} {{ end }}
 {{ end }}
 {{ if ne .NewUsername .OldUsername }}
 sudo usermod --login={{ .NewUsername }} --move-home --home=/home/{{ .NewUsername }} {{ .OldUsername }}
