@@ -87,5 +87,5 @@ include:
   script:
     - |
       release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-        --assets-link "{\"name\":\"${PACKAGE_FILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}\"}" \
-        --assets-link "{\"name\":\"${PACKAGE_SIGNATURE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\"}"
+        --assets-link "{\"name\":\"${PACKAGE_FILE}\",\"filepath\":\"${PACKAGE_FILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}\"}" \
+        --assets-link "{\"name\":\"${PACKAGE_SIGNATURE}\",\"filepath\":\"${PACKAGE_SIGNATURE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\"}"
