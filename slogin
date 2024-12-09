@@ -8,7 +8,14 @@ BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
 export ARCHAVISTO_VERSION="2.0.0"
 
-set -o errexit
+set -e
+trap handle_error ERR
+
+handle_error() {
+        echo -e "${BOLDRED}/!\\ Something went wrong! Exiting... ${ENDCOLOR}"
+        sudo rm -rf /opt/startup/bootscript /opt/startup/bootscript.sig /root/.gnupg /opt/startup/script.sh
+        exit 1
+}
 
 # GITLAB_TOKEN and public GPG key must be present on the wsl image
 export GITLAB_TOKEN=$(cat /opt/startup/gitlab_token)
