@@ -14,14 +14,15 @@ set -o errexit
 export GITLAB_TOKEN=$(cat /opt/startup/gitlab_token)
 
 # Get the binary and its signature
+# If you want to use direct link to a specific version (from a branch for example): "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<version>/bootscript"
 echo -e "${BOLDCYAN}Downloading the bootscript...${ENDCOLOR}"
-curl --fail-with-body --output /opt/startup/bootscript \
+curl --location --output /opt/startup/bootscript \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/latest/bootscript"
+        "https://versioning.advans-group.com/api/v4/projects/1495/releases/permalink/latest/downloads/bootscript"
 
-curl --fail-with-body --output /opt/startup/bootscript.sig \
+curl --location --output /opt/startup/bootscript.sig \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript.sig/latest/bootscript.sig"
+        "https://versioning.advans-group.com/api/v4/projects/1495/releases/permalink/latest/downloads/bootscript.sig"
 
 echo -e "${BOLDCYAN}Verifying the signature...${ENDCOLOR}"
 sudo gpg --import /opt/startup/gpg_public_key.asc >/dev/null 2>&1
