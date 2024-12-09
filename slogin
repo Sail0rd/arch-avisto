@@ -2,14 +2,16 @@
 
 BOLDRED="\e[1;31m"
 BOLDGREEN="\e[1;32m"
-BOLDCYAN="\e[1;36m"
+BOLDCYAN="\e[38;2;95;135;255m"
 BOLDMAGENTA="\e[1;35m"
 BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
+export ARCHAVISTO_VERSION="2.0.0"
 
 set -o errexit
 
 # GITLAB_TOKEN and public GPG key must be present on the wsl image
+export GITLAB_TOKEN=$(cat /opt/startup/gitlab_token)
 
 # Get the binary and its signature
 echo -e "${BOLDCYAN}Downloading the bootscript...${ENDCOLOR}"
@@ -22,18 +24,20 @@ curl --fail-with-body --output /opt/startup/bootscript.sig \
         "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript.sig/latest/bootscript.sig"
 
 echo -e "${BOLDCYAN}Verifying the signature...${ENDCOLOR}"
-sudo gpg --import /opt/startup/gpg_public_key.asc
-if ! sudo gpg --verify /opt/startup/bootscript.sig /opt/startup/bootscript; then
+sudo gpg --import /opt/startup/gpg_public_key.asc >/dev/null 2>&1
+if ! sudo gpg --verify /opt/startup/bootscript.sig /opt/startup/bootscript >/dev/null 2>&1; then
         echo -e "${BOLDRED}[ERROR] GPG signature verification failed. Exiting...${ENDCOLOR}"
         exit 1
 fi
+echo -e "${BOLDGREEN}GPG signature verified successfully${ENDCOLOR}"
 sleep 1
 chmod +x /opt/startup/bootscript
 
-export ARCHAVISTO_VERSION=1.2.0
+sudo sed -i "s/^PRETTY_NAME=.*/PRETTY_NAME=\"Arch Avisto v${ARCHAVISTO_VERSION}\"/" /etc/os-release
+
 /opt/startup/bootscript
 /opt/startup/script.sh
 
-echo -e "${BOLDGREEN}Installation complete!${ENDCOLOR}"
+echo -e "${BOLDGREEN}Installation complete${ENDCOLOR}"
 echo -e "${BOLDCYAN}You can now go back to Powershell and start WSL using the commands ${BOLDMAGENTA}wsl -t <distro-name> ${BOLDCYAN}and then ${BOLDMAGENTA}wsl -d <distro-name>${ENDCOLOR}"
 echo -e "${BOLDRED}/!\\ this step is mandatory to complete the installation process and must be done before launching a new WSL instance ${ENDCOLOR}"

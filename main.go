@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"text/template"
@@ -13,20 +12,24 @@ const (
 	oldUsername        = "arch"
 	loginUsername      = "login"
 	skipFilename       = "/opt/startup/skip_bootscript"
+	bootscriptVersion  = "1.2.0"
 	scriptFilename     = "/opt/startup/script.sh"
 	testAddress        = "https://google.com"
 	versionEnvKey      = "ARCHAVISTO_VERSION"
 	privateTokenEnvKey = "GITLAB_TOKEN"
-	repoURL            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=main"
+	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=11-propose-alternative-shells"
 	scriptTemplate     = `
 #!/usr/bin/sh
 set -o errexit
+# Bootscript version: {{ .BootscriptVersion }}
 sudo -u {{ .OldUsername }} paru -Syu --skipreview
 {{ if .Packages }}
 sudo -u {{ .OldUsername }} paru -S {{ range .Packages }}{{ . }} {{ end }}
 {{ end }}
 {{ if ne .NewUsername .OldUsername }}
-sudo usermod --login={{ .NewUsername }} --move-home --home=/home/{{ .NewUsername }} {{ .OldUsername }}
+sudo usermod --login={{ .NewUsername }} --shell /usr/sbin/{{ .Shell }} --move-home --home=/home/{{ .NewUsername }} {{ .OldUsername }}
+{{ else }}
+sudo usermod --shell /usr/sbin/{{ .Shell }} {{ .OldUsername }}
 {{ end }}
 sudo sed -i "s/{{ .LoginUsername }}/{{ .NewUsername }}/g" /etc/wsl.conf
 touch {{ .SkipFile }}
@@ -34,11 +37,13 @@ touch {{ .SkipFile }}
 )
 
 type templateData struct {
-	LoginUsername string
-	OldUsername   string
-	NewUsername   string
-	SkipFile      string
-	Packages      []string
+	LoginUsername     string
+	OldUsername       string
+	NewUsername       string
+	SkipFile          string
+	BootscriptVersion string
+	Shell             string
+	Packages          []string
 }
 
 // jsonData is the struct that represents the json file
@@ -55,6 +60,8 @@ type jsonData struct {
 }
 
 func main() {
+	ClearScreen()
+
 	// checks if the skip file exists
 	if _, err := os.Stat(skipFilename); err == nil {
 		color.Yellow("Skipping script execution due to skip file %s,\n", skipFilename)
@@ -66,18 +73,23 @@ func main() {
 
 	version := os.Getenv(versionEnvKey)
 	if version != "" {
-		color.Yellow("Version: %s\n", version)
+		color.Yellow("Image Version: %s\n", version)
+		color.Yellow("Bootscript Version: %s\n", bootscriptVersion)
 	}
 
-	fmt.Println("Checking network connectivity...")
+	color.Cyan("Checking network connectivity...")
 	if _, err := http.Get(testAddress); err != nil {
-		color.Red("Unable to join Internet. Check the Confluence page for troobleshooting or Contact a DevOps internal member by Teams or by email devops-support@advans-group.atlassian.net")
+		color.Red("Unable to join Internet. Check the Confluence page for troobleshooting or Contact a DevOps internal member by Teams or by email: devops-support@advans-group.atlassian.net")
 		os.Exit(42)
 	}
 
-	fmt.Println("Network OK \u2714")
+	color.Green("Network OK \u2714")
 
-	updatePrompt()
+	// Ask for the permission to update the system
+	if updatePrompt() == "No" {
+		color.Red("cannot continue without updating the system packages.")
+		os.Exit(1)
+	}
 
 	// Ask for the new username
 	newUsername := userNamePrompt(oldUsername)
@@ -88,7 +100,7 @@ func main() {
 		color.Red("Missing the GITLAB_TOKEN environment variable, cannot fetch the packages json file. Exiting...")
 		os.Exit(1)
 	}
-	content, err := fetchJsonFiles(repoURL, privateToken)
+	content, err := fetchJsonFiles(fileUrl, privateToken)
 	if err != nil {
 		color.Red("Error while fetching the packages json file, it may be an internal Gitlab issue, please contact a DevOps internal member or IT for support: %s", err)
 		os.Exit(1)
@@ -126,13 +138,17 @@ func main() {
 	// Prompt package list
 	packageToInstall := packagesPrompt(packageList, packageDescription)
 
+	chosenShell := shellPrompt([]string{"bash", "fish", "zsh"})
+
 	// End of interactive prompts
 	data := templateData{
-		LoginUsername: loginUsername,
-		OldUsername:   oldUsername,
-		NewUsername:   newUsername,
-		SkipFile:      skipFilename,
-		Packages:      packageToInstall,
+		LoginUsername:     loginUsername,
+		OldUsername:       oldUsername,
+		NewUsername:       newUsername,
+		SkipFile:          skipFilename,
+		BootscriptVersion: bootscriptVersion,
+		Shell:             chosenShell,
+		Packages:          packageToInstall,
 	}
 
 	tmpl, err := template.New("example").Parse(scriptTemplate)

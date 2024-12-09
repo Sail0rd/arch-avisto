@@ -75,6 +75,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.selected[index] = struct{}{}
 			}
+		case "a":
+			// Toggle select/unselect all
+			if len(m.selected) == len(m.list.Items()) {
+				// All items are selected, unselect all
+				m.selected = make(map[int]struct{})
+			} else {
+				// Select all items
+				for i := range m.list.Items() {
+					m.selected[i] = struct{}{}
+				}
+			}
 		}
 	}
 	return m, nil
@@ -131,7 +142,7 @@ func (m Model) View() string {
 		b.WriteString(fmt.Sprintf("%s [%s] %s%s- %s\n", cursor, checked, title, padding, descStyle.Render(pkg.Description())))
 	}
 
-	b.WriteString("\n" + descStyle.Render("Press Space to toggle selection and Enter to confirm.") + "\n")
+	b.WriteString("\n" + descStyle.Render("Space: toggle selection, a: Select/Unselect all,  Enter: confirm.") + "\n")
 
 	return b.String()
 }
