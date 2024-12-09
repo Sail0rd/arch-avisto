@@ -12,12 +12,12 @@ const (
 	oldUsername        = "arch"
 	loginUsername      = "login"
 	skipFilename       = "/opt/startup/skip_bootscript"
-	bootscriptVersion  = "1.2.0"
+	bootscriptVersion  = "1.1.0"
 	scriptFilename     = "/opt/startup/script.sh"
 	testAddress        = "https://google.com"
 	versionEnvKey      = "ARCHAVISTO_VERSION"
 	privateTokenEnvKey = "GITLAB_TOKEN"
-	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=11-propose-alternative-shells"
+	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=main"
 	scriptTemplate     = `
 #!/usr/bin/sh
 set -o errexit
