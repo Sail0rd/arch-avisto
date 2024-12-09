@@ -3,10 +3,12 @@ stages:
   - build
   - sign
   - publish
+  - release
 
 variables:
   PACKAGE_FILE: "bootscript"
   PACKAGE_SIGNATURE: "bootscript.sig"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
 
 include:
   - project: "DevOps/gitlab-ci/job-templates/precommit"
@@ -22,7 +24,6 @@ include:
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-.*)?$/
       variables:
         PACKAGE_VERSION: ${CI_COMMIT_TAG}
-
 
 🚸 precommit:
   extends:
@@ -58,23 +59,33 @@ include:
   extends: .default
   image: registry.gitlab.com/gitlab-ci-utils/curl-jq:3.0.4@sha256:51b1d34e833d541c3e7d4e5141c670e896ce8b9d110a0ca4b93c2fedc6c3d4b7
   script:
-    # Push the package and signature to the GitLab Packages registry
+    # Push the package to the GitLab Packages registry
     - |
-      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}"
-      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}"
-    # Exit the pipeline if there is no CI_COMMIT_TAG set
-    - |
-      if [ -z "$CI_COMMIT_TAG" ]; then
-        exit 0
+      echo -e "\n\033[1;33mUploading package file: ${PACKAGE_FILE} to ${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}\033[0m"
+      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_FILE} "${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}"
+      if [ $? -eq 0 ]; then
+        echo -e "\n\033[1;32mUpload of ${PACKAGE_FILE} succeeded\033[0m"
+      else
+        echo -e "\n\033[1;31mUpload of ${PACKAGE_FILE} failed\033[0m"
       fi
-    # Delete existing package with the version 'latest' as it's impossible to get the latest package automatically
-    # See https://forum.gitlab.com/t/how-to-fetch-latest-package-version-generic-packages-repository/49948 for more infos
+    # Push the package signature to the GitLab Packages registry
     - |
-      OLD_PACKAGE_ID=$(curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?order_by=created_at&sort=desc" | jq '.[] | select(.name == "${PACKAGE_FILE}" and .version == "latest") | .id') || true
-      OLD_PACKAGE_SIGNATURE_ID=$(curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?order_by=created_at&sort=desc" | jq '.[] | select(.name == "${PACKAGE_SIGNATURE}" and .version == "latest") | .id') || true
-      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${OLD_PACKAGE_ID}" -X DELETE
-      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${OLD_PACKAGE_SIGNATURE_ID}" -X DELETE
-  # Upload the new package and signature with the version 'latest'
+      echo -e "\n\033[1;33mUploading package signature: ${PACKAGE_SIGNATURE} to ${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\033[0m"
+      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}"
+      if [ $? -eq 0 ]; then
+        echo -e "\n\033[1;32mUpload of ${PACKAGE_SIGNATURE} succeeded\033[0m"
+      else
+        echo -e "\n\033[1;31mUpload of ${PACKAGE_SIGNATURE} failed\033[0m"
+      fi
+
+📝 release:
+  stage: release
+  extends: .default
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.20.0@sha256:0cc9957c237cafd4bb6dc553c879a811787ccbc6bbf21d64fd7a5849a8d633ae
+  rules:
+    - if: $CI_COMMIT_TAG && $PACKAGE_VERSION != ""
+  script:
     - |
-      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_FILE}/latest/${PACKAGE_FILE}"
-      curl --fail-with-body --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_SIGNATURE}/latest/${PACKAGE_SIGNATURE}"
+      release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+        --assets-link "{\"name\":\"${PACKAGE_FILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}\"}" \
+        --assets-link "{\"name\":\"${PACKAGE_SIGNATURE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\"}"
