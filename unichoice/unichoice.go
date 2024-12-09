@@ -32,6 +32,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "ctrl+c":
+			return m, tea.Quit
 		case "k", "up":
 			m.cursor--
 			if m.cursor < 0 {
@@ -63,7 +65,7 @@ func (m Model) View() string {
 	var s string
 
 	// Optional title for the list
-	s += titleStyle.Render("Select an option:") + "\n\n"
+	s += titleStyle.Render(m.title) + "\n\n"
 
 	// Loop over the choices and render them
 	for i, choice := range m.choices {

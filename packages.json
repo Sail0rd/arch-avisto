@@ -33,16 +33,28 @@
       "description": "a modern and intuitive terminal-based text editor"
     },
     {
-      "name": "tldr",
-      "description": "command line cheat sheet"
-    },
-    {
       "name": "pre-commit",
       "description": "framework for managing and maintaining multi-language pre-commit hooks"
     },
     {
+      "name": "screen",
+      "description": "terminal multiplexer that allows for managing multiple sessions"
+    },
+    {
       "name": "skaffold",
       "description": "tool for continuous development on Kubernetes"
+    },
+    {
+      "name": "starship",
+      "description": "fancy shell prompt"
+    },
+    {
+      "name": "tldr",
+      "description": "command line cheat sheet"
+    },
+    {
+      "name": "tmux",
+      "description": "a terminal multiplexer"
     },
     {
       "name": "unzip",
@@ -51,10 +63,6 @@
     {
       "name": "wget",
       "description": "download files from the web"
-    },
-    {
-      "name": "tmux",
-      "description": "a terminal multiplexer"
     }
   ],
   "profiles": {
@@ -74,16 +82,20 @@
         "description": "a minimalistic terminal UI for system monitoring"
       },
       {
+        "name": "gnu-netcat",
+        "description": "network utility for reading/writing data across networks"
+      },
+      {
         "name": "htop",
         "description": "interactive process viewer for Unix systems"
       },
       {
-        "name": "iperf",
-        "description": "network performance measurement tool"
+        "name": "inetutils",
+        "description": "collection of common network programs"
       },
       {
-        "name": "gnu-netcat",
-        "description": "network utility for reading/writing data across networks"
+        "name": "iperf",
+        "description": "network performance measurement tool"
       },
       {
         "name": "net-tools",
@@ -94,10 +106,6 @@
         "description": "postgreSQL command line interface with auto-completion"
       },
       {
-        "name": "screen",
-        "description": "terminal multiplexer that allows for managing multiple sessions"
-      },
-      {
         "name": "sshuttle",
         "description": "transparent proxy server for SSH"
       },
@@ -106,16 +114,8 @@
         "description": "packet analyzer for network traffic"
       },
       {
-        "name": "inetutils",
-        "description": "collection of common network programs"
-      },
-      {
         "name": "terraform",
         "description": "tool for building, changing, and versioning infrastructure"
-      },
-      {
-        "name": "tmux",
-        "description": "terminal multiplexer for managing multiple terminal sessions"
       }
     ]
   }

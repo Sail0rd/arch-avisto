@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"regexp"
 
 	"inputs"
@@ -27,14 +28,20 @@ func checkError(err error, message string) {
 	}
 }
 
-func updatePrompt() {
-	result, err := unichoice.Run([]string{"Yes", "No"}, "Do you agree to update the system packages")
-	checkError(err, "Prompt failed")
+// This function clears the terminal screen.
+func ClearScreen() {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
 
-	if result == "No" {
-		color.Red("Cannot continue without updating the system.")
-		os.Exit(1)
+func updatePrompt() string {
+	result, err := unichoice.Run([]string{"Yes", "No"}, "Do you agree to update the system packages")
+	if err != nil {
+		color.Red("Failed to prompt for update: %s", err)
+		return "No"
 	}
+	return result
 }
 
 func userNamePrompt(defaultUsername string) string {
@@ -105,6 +112,16 @@ func profilePrompt(profiles []string) []string {
 	result, err := multichoice.Run(profiles, descriptions, title)
 	if err != nil {
 		color.Red("Failed to select profile: %s", err)
+		os.Exit(1)
+	}
+	return result
+}
+
+func shellPrompt(shells []string) string {
+	title := "Choose your shell"
+	result, err := unichoice.Run(shells, title)
+	if err != nil {
+		color.Red("Failed to select shell: %s", err)
 		os.Exit(1)
 	}
 	return result

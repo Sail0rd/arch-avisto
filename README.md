@@ -97,15 +97,16 @@ When the changes you want to make are on the image itself:
 1. Use the [documentation](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#%F0%9F%86%95-Import-Avisto-image-[Recommended])
    to import the image, then login using `wsl -u arch -d <distro-name>`
 1. Do your changes
-1. Update the version in `/opt/startup/slogin` file
+1. Export the `GITLAB_TOKEN` env var in the `slogin` script
+1. Change the `ARCHAVISTO_VERSION` in the `slogin` script to the new version and copy the content of the script in `/opt/startup/slogin`
 1. Prep the image by running `source /opt/prep.sh`
-1. Confirm your history is empty (^R), otherwise run the content of `/opt/prep.sh` manually
 1. Open a Powershell
 1. Shutdown wsl with `wsl --terminate <distro-name>`
 1. Export the distribution as a compressed archive (see the command below)
 1. Upload it to the SharePoint (step 1)
 1. Make at least 1 person test it
 1. Change SharePoint link on the documentation (step 2) to point to the new version
+1. Update the `CHANGELOG.md` with the new version and the changes
 
 ```python
 # Export the distribution as a compressed archive
@@ -119,6 +120,7 @@ First, follow all the Avisto guidelines for a new feature (new issue -> create M
 
 Next, here are the steps to test your image:
 
+1. Update the `bootscriptVersion` in the `main.go` (usually located line 15)
 1. Check that the pipeline pass once you committed your changes
 1. Use the [documentation](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#%F0%9F%86%95-Import-Avisto-image-[Recommended])
    to import the image, then login using `wsl -u root -d <distro-name>`
