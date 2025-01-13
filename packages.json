@@ -1,6 +1,22 @@
 {
   "common": [
     {
+      "name": "devbox-bin",
+      "description": "instant, easy, and predictable development environments"
+    },
+    {
+      "name": "age",
+      "description": "simple, modern and secure file encryption tool"
+    },
+    {
+      "name": "sops",
+      "description": "editor of encrypted files"
+    },
+    {
+      "name": "direnv",
+      "description": "a shell extension that manages your environment"
+    },
+    {
       "name": "duf",
       "description": "fancy disk usage"
     },
