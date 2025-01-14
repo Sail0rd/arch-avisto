@@ -94,6 +94,10 @@
         "description": "automation tool for configuration management"
       },
       {
+        "name": "git-sizer",
+        "description": "compute various size metrics for a Git repository"
+      },
+      {
         "name": "bottom",
         "description": "a minimalistic terminal UI for system monitoring"
       },
