@@ -17,7 +17,7 @@ const (
 	testAddress        = "https://google.com"
 	versionEnvKey      = "ARCHAVISTO_VERSION"
 	privateTokenEnvKey = "GITLAB_TOKEN"
-	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=main"
+	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=16-add-kconf"
 	scriptTemplate     = `
 #!/usr/bin/sh
 set -o errexit
