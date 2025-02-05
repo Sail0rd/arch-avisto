@@ -45,6 +45,10 @@
       "description": "kubernetes command-line tool"
     },
     {
+      "name": "kconf",
+      "description": "an opinionated command line tool for managing multiple kubeconfigs"
+    },
+    {
       "name": "micro",
       "description": "a modern and intuitive terminal-based text editor"
     },
