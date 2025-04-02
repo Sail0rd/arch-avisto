@@ -12,7 +12,7 @@ set -e
 trap handle_error ERR
 
 handle_error() {
-        echo -e "${BOLDRED}/!\ Something went wrong! Exiting... ${ENDCOLOR}"
+        echo -e "${BOLDRED}/!\\ Something went wrong! Exiting... ${ENDCOLOR}"
         echo -e "${BOLDGREEN}Fill in a ticket on https://support.advans-group.com or contact maintainers on Teams.${ENDCOLOR}"
         sudo rm -rf /opt/startup/bootscript /opt/startup/bootscript.sig /root/.gnupg /opt/startup/script.sh
         exit 1
