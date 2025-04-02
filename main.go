@@ -16,7 +16,7 @@ const (
 	scriptFilename     = "/opt/startup/script.sh"
 	testAddress        = "https://google.com"
 	versionEnvKey      = "ARCHAVISTO_VERSION"
-	maintainersKey     = "MAINTAINERS"
+	maintainers        = "Yann Lacroix <yann.lacroix@avisto.com>, Mathis Guilbaud <mathis.guilbaud@avisto.com>"
 	privateTokenEnvKey = "GITLAB_TOKEN"
 	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=main"
 	scriptTemplate     = `
