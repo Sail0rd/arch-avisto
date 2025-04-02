@@ -6,6 +6,7 @@ BOLDCYAN="\e[38;2;95;135;255m"
 BOLDMAGENTA="\e[1;35m"
 BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
+export MAINTAINERS="Yann Lacroix<yann.lacroix@avisto.com>, Mathis Guilbaud<mathis.guilbaud@avisto.com>"
 export ARCHAVISTO_VERSION="2.0.0"
 
 set -e
@@ -13,6 +14,7 @@ trap handle_error ERR
 
 handle_error() {
         echo -e "${BOLDRED}/!\\ Something went wrong! Exiting... ${ENDCOLOR}"
+        echo -e "${BOLDGREEN}Contact ${MAINTAINERS} with Teams or fill in a ticket on https://support.advans-group.com/marketplace/formcreator/front/formdisplay.php?id=46${ENDCOLOR}"
         sudo rm -rf /opt/startup/bootscript /opt/startup/bootscript.sig /root/.gnupg /opt/startup/script.sh
         exit 1
 }

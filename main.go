@@ -12,12 +12,13 @@ const (
 	oldUsername        = "arch"
 	loginUsername      = "login"
 	skipFilename       = "/opt/startup/skip_bootscript"
-	bootscriptVersion  = "1.1.0"
+	bootscriptVersion  = "1.1.1"
 	scriptFilename     = "/opt/startup/script.sh"
 	testAddress        = "https://google.com"
 	versionEnvKey      = "ARCHAVISTO_VERSION"
+	maintainersKey     = "MAINTAINERS"
 	privateTokenEnvKey = "GITLAB_TOKEN"
-	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=16-add-kconf"
+	fileUrl            = "https://versioning.advans-group.com/api/v4/projects/1495/repository/files/packages.json?ref=main"
 	scriptTemplate     = `
 #!/usr/bin/sh
 set -o errexit
@@ -71,15 +72,18 @@ func main() {
 
 	color.Cyan("Welcome to ArchAvisto!\n")
 
-	version := os.Getenv(versionEnvKey)
-	if version != "" {
+	if maintainers := os.Getenv(maintainersKey); maintainers != "" {
+		color.Green("Maintainers: %s", maintainers)
+	}
+
+	if version := os.Getenv(versionEnvKey); version != "" {
 		color.Yellow("Image Version: %s\n", version)
 		color.Yellow("Bootscript Version: %s\n", bootscriptVersion)
 	}
 
 	color.Cyan("Checking network connectivity...")
 	if _, err := http.Get(testAddress); err != nil {
-		color.Red("Unable to join Internet. Check the Confluence page for troobleshooting or Contact a DevOps internal member by Teams or by email: devops-support@advans-group.atlassian.net")
+		color.Red("Unable to join Internet.")
 		os.Exit(42)
 	}
 
@@ -87,7 +91,7 @@ func main() {
 
 	// Ask for the permission to update the system
 	if updatePrompt() == "No" {
-		color.Red("cannot continue without updating the system packages.")
+		color.Red("Cannot continue without updating the system packages.")
 		os.Exit(1)
 	}
 
