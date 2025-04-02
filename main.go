@@ -71,10 +71,7 @@ func main() {
 	}
 
 	color.Cyan("Welcome to ArchAvisto!\n")
-
-	if maintainers := os.Getenv(maintainersKey); maintainers != "" {
-		color.Green("Maintainers: %s", maintainers)
-	}
+	color.Green("Maintainers: %s", maintainers)
 
 	if version := os.Getenv(versionEnvKey); version != "" {
 		color.Yellow("Image Version: %s\n", version)
