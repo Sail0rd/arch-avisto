@@ -6,13 +6,14 @@ BOLDCYAN="\e[38;2;95;135;255m"
 BOLDMAGENTA="\e[1;35m"
 BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
-export ARCHAVISTO_VERSION="2.0.0"
+export ARCHAVISTO_VERSION="2.0.1"
 
 set -e
 trap handle_error ERR
 
 handle_error() {
         echo -e "${BOLDRED}/!\\ Something went wrong! Exiting... ${ENDCOLOR}"
+        echo -e "${BOLDGREEN}Fill in a ticket on https://support.advans-group.com or contact maintainers on Teams.${ENDCOLOR}"
         sudo rm -rf /opt/startup/bootscript /opt/startup/bootscript.sig /root/.gnupg /opt/startup/script.sh
         exit 1
 }
@@ -21,7 +22,8 @@ handle_error() {
 export GITLAB_TOKEN=$(cat /opt/startup/gitlab_token)
 
 # Get the binary and its signature
-# If you want to use direct link to a specific version (from a branch for example): "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<version>/bootscript"
+# If you want to use direct link to a specific version, copy the links from the pipeline (publish job) or replace by "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<version>/bootscript"
+
 echo -e "${BOLDCYAN}Downloading the bootscript...${ENDCOLOR}"
 curl --location --output /opt/startup/bootscript \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
