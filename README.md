@@ -97,7 +97,6 @@ When the changes you want to make are on the image itself:
 1. Use the [documentation](https://advans-group.atlassian.net/wiki/spaces/DS/pages/2919563271/WSL+2+Get+started#%F0%9F%86%95-Import-Avisto-image-[Recommended])
    to import the image, then login using `wsl -u arch -d <distro-name>`
 1. Do your changes
-1. Export the `GITLAB_TOKEN` env var in the `slogin` script
 1. Change the `ARCHAVISTO_VERSION` in the `slogin` script to the new version and copy the content of the script in `/opt/startup/slogin`
 1. Prep the image by running `source /opt/prep.sh`
 1. Open a Powershell
@@ -130,4 +129,8 @@ Next, here are the steps to test your image:
    for instance, replace `https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/latest/bootscript`
    by `https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<your short commit sha>/bootscript` in both lines.
 1. Run `su login` and verify all your changes are working properly
-1. If everything is to your liking you can unregister the wsl distro (using `wsl --unregister <distro-name>`), then ask someone to review your MR and you are good to go!
+1. Update the `CHANGELOG.md` with the new version and the changes
+1. If everything is to your liking you can unregister the wsl distro (using `wsl --unregister <distro-name>`), then ask someone to review your MR!
+1. Once happy, merge the MR and tag the merge commit on main, it'll create automatically a release and update the permalink
+
+> When someone changes the bootscript, there is no need to either release a new Arch Avisto image nor to redownload the tar for the new bootscrip to be used.
