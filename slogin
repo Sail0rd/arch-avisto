@@ -22,7 +22,8 @@ handle_error() {
 export GITLAB_TOKEN=$(cat /opt/startup/gitlab_token)
 
 # Get the binary and its signature
-# If you want to use direct link to a specific version (from a branch for example): "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<version>/bootscript"
+# If you want to use direct link to a specific version, copy the links from the pipeline (publish job) or replace by "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<version>/bootscript"
+
 echo -e "${BOLDCYAN}Downloading the bootscript...${ENDCOLOR}"
 curl --location --output /opt/startup/bootscript \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
