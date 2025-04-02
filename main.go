@@ -23,6 +23,7 @@ const (
 #!/usr/bin/sh
 set -o errexit
 # Bootscript version: {{ .BootscriptVersion }}
+sudo -u {{ .OldUsername }} paru -Sy --skipreview archlinux-keyring
 sudo -u {{ .OldUsername }} paru -Syu --skipreview
 {{ if .Packages }}
 sudo -u {{ .OldUsername }} paru -S {{ range .Packages }}{{ . }} {{ end }}
