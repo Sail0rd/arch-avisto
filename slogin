@@ -6,7 +6,7 @@ BOLDCYAN="\e[38;2;95;135;255m"
 BOLDMAGENTA="\e[1;35m"
 BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
-export ARCHAVISTO_VERSION="2.0.1"
+export ARCHAVISTO_VERSION="2.1.0"
 
 set -e
 trap handle_error ERR
