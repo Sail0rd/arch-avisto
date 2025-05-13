@@ -13,6 +13,10 @@
       "description": "editor of encrypted files"
     },
     {
+      "name": "sshs",
+      "description": "SSH client with a focus on security and simplicity"
+    },
+    {
       "name": "direnv",
       "description": "a shell extension that manages your environment"
     },
