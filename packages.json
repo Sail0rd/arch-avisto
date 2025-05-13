@@ -1,10 +1,6 @@
 {
   "common": [
     {
-      "name": "devbox-bin",
-      "description": "instant, easy, and predictable development environments"
-    },
-    {
       "name": "age",
       "description": "simple, modern and secure file encryption tool"
     },
