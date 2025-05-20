@@ -1,13 +1,11 @@
 stages:
   - precommit
   - build
-  - sign
   - publish
   - release
 
 variables:
   PACKAGE_FILE: "bootscript"
-  PACKAGE_SIGNATURE: "bootscript.sig"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
 
 include:
@@ -37,27 +35,11 @@ include:
   script:
     - go mod download
     - go build -o $PACKAGE_FILE
+    - sha256sum "$PACKAGE_FILE" > "${PACKAGE_FILE}.sha256"
   artifacts:
     paths:
       - $PACKAGE_FILE
-  rules:
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
-
-✒️ sign:
-  stage: sign
-  extends: .default
-  image: devopscrc/gpg-curl:v1@sha256:3b0d9b15478e7c5e9c7dd0778e4c9cfb748ec14152c9d8c3c913655ccdd9bd01
-  script:
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-    - gpg --batch --import $CI_PROJECT_DIR/.secure_files/gpg_private_key.asc
-    - gpg --batch --yes --detach-sign --armor -o $PACKAGE_SIGNATURE $PACKAGE_FILE
-  artifacts:
-    paths:
-      - $PACKAGE_SIGNATURE
-      - $PACKAGE_FILE
+      - ${PACKAGE_FILE}.sha256
   rules:
     - changes:
         - "**/*.go"
@@ -83,14 +65,14 @@ include:
       else
         echo -e "\n\033[1;31mUpload of ${PACKAGE_FILE} failed\033[0m"
       fi
-    # Push the package signature to the GitLab Packages registry
+    # Push the package checksum to the GitLab Packages registry
     - |
-      echo -e "\n\033[1;33mUploading package signature: ${PACKAGE_SIGNATURE} to ${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\033[0m"
-      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}"
+      echo -e "\n\033[1;33mUploading package signature: ${PACKAGE_FILE}.sha256 to ${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}.sha256/${PACKAGE_VERSION}/${PACKAGE_FILE}.sha256\033[0m"
+      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_FILE}.sha256 "${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}.sha256/${PACKAGE_VERSION}/${PACKAGE_FILE}.sha256"
       if [ $? -eq 0 ]; then
-        echo -e "\n\033[1;32mUpload of ${PACKAGE_SIGNATURE} succeeded\033[0m"
+        echo -e "\n\033[1;32mUpload of ${PACKAGE_FILE}.sha256 succeeded\033[0m"
       else
-        echo -e "\n\033[1;31mUpload of ${PACKAGE_SIGNATURE} failed\033[0m"
+        echo -e "\n\033[1;31mUpload of ${PACKAGE_FILE}.sha256 failed\033[0m"
       fi
 
 📝 release:
@@ -109,4 +91,4 @@ include:
     - |
       release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
         --assets-link "{\"name\":\"${PACKAGE_FILE}\",\"filepath\":\"/${PACKAGE_FILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}\",\"link_type\": \"package\"}" \
-        --assets-link "{\"name\":\"${PACKAGE_SIGNATURE}\",\"filepath\":\"/${PACKAGE_SIGNATURE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\",\"link_type\": \"package\"}"
+        --assets-link "{\"name\":\"${PACKAGE_FILE}.sha256\",\"filepath\":\"/${PACKAGE_FILE}.sha256\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}.sha256/${PACKAGE_VERSION}/${PACKAGE_FILE}.sha256\",\"link_type\": \"package\"}"
