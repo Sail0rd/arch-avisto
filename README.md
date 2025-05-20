@@ -140,34 +140,35 @@ Next, here are the steps to test your image:
 # Recreate Arch image from scratch
 
 ## Base Instructions
+
 ### Distribution installation
-follow this [tutorial](https://wiki.archlinux.org/title/Install_Arch_Linux_on_WSL)
+
+Follow this [tutorial](https://wiki.archlinux.org/title/Install_Arch_Linux_on_WSL).
 
 ### User creation
-**create 2 users**: arch and login
-`useradd -m arch` (to create a home) and `useradd login`
-also add both users to the wheel group so they can use sudo
+
+**Create 2 users**: arch and login
+`useradd -m arch` (to create a home) and `useradd login`.
+Also add both users to the wheel group so they can use sudo (`usermod -aG wheel arch` and `usermod -aG wheel login`).
+
 ### Login set up
 
-now login as the arch user `su arch && cd ~`
-**install paru**
-```bash
-sudo pacman -S --needed base-devel
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si
-```
+Now login as the arch user `su arch && cd ~`.
 
-create a `/opt/startup` directory and put the `slogin` script found on the arch avisto repo as well as the public gpg key
+**Install paru** using the [documentation](https://github.com/Morganamilo/paru?tab=readme-ov-file#installation) (do it in /tmp preferably).
 
-then create a file named `gitlab_token` that will hold a token created with read right on the arch avisto repository
+Create a `/opt/startup` directory and put the `slogin` script found on the arch avisto repo.
+
+Then create a file named `gitlab_token` that will hold a token created with read right on the arch avisto repository.
 
 > [!Note]
-> don't forget to give the ownership of the `/opt/startup` directory to the login user
+> Don't forget to give the ownership of the `/opt/startup` directory to the login user.
 
-Once this is done, change the `/etc/passwd` file to modify the default shell of the login user to `/opt/startup/slogin`
+Once this is done, time to change the `/etc/passwd` file to modify the default
+shell of the login user to `/opt/startup/slogin`, do it by running `sudo chsh -s /opt/startup/slogin login`
 
-and modify the default user to be the login user in the `/etc/wsl.conf` file
+and modify the default user to be the login user in the `/etc/wsl.conf` file.
+
 ```
 [user]
 default=login
@@ -177,62 +178,26 @@ systemd=true
 ```
 
 > [!Warning]
-> from now on, don't forget to start the distribution using `wsl -d <distro> -u arch` to avoid going through the installation script
+> From now on, don't forget to start the distribution using `wsl -d <distro> -u arch` to avoid going through the installation script.
 
 ## Distribution customization
 
 ### Installing docker
 
-to install docker, simply `paru -S docker`
-then `sudo systemctl enable docker` and `sudo systemctl start docker`
+To install docker, simply `paru -S docker`
+then `sudo systemctl enable docker` and `sudo systemctl start docker`.
+
 > [!Note]
-> don't forget to add the user to the `docker` group `sudo usermod -aG docker <username>`
-
-### Shells
-We provide minimal configuration for all shells proposed in the installation script
-first install all shells ( `paru -S fish bash zsh`)
-#### Zsh
-```bash
-if command -v direnv >/dev/null 2>&1; then
-  eval "$(direnv hook zsh)"
-fi
-if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init zsh)"
-fi
-
-echo; fastfetch; echo;
-```
-#### Bash
-paste this in the `~/.bash_profile`
-```bash
-if command -v direnv >/dev/null 2>&1; then
-  eval "$(direnv hook bash)"
-fi
-if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init bash)"
-fi
-
-echo; fastfetch; echo;
-```
-#### Fish
-paste the following in the `~/.config/fish/config.fish`
-```fish
-if command -v starship > /dev/null 2>&1
-    starship init fish | source
-end
-if command -v direnv > /dev/null 2>&1
-    direnv hook fish | source
-end
-
-echo; fastfetch; echo;
-```
+> Don't forget to add the user to the `docker` group `sudo usermod -aG docker arch`.
 
 ### Fastfetch
-install fastfetch `paru -S fastfetch` and paste the following content in the `~/.config/fastfetch/config.jsonc`
-> [!Note]
-> you will need the logo ascii art, you can generate it using `jp2a --width=45 --colors --color-depth=8 logo\ Avisto.png --chars=' ###'` command with the logo you can find [here](https://groupadvans.sharepoint.com/sites/IntranetADVANSGroup/SitePages/identite-visuelle.aspx)
 
-```
+1. Install fastfetch `paru -S fastfetch`.
+1. Create the logo using `jp2a --width=45 --colors --color-depth=8 logo\ Avisto.png --chars=' ###'` command with the logo you can find [here](https://groupadvans.sharepoint.com/sites/IntranetADVANSGroup/SitePages/identite-visuelle.aspx).
+1. Create the directory `~/.config/fastfetch` and paste the logo in it.
+1. Paste the following content in `~/.config/fastfetch/config.jsonc`.
+
+```json
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "modules": [
@@ -266,14 +231,63 @@ install fastfetch `paru -S fastfetch` and paste the following content in the `~/
 }
 ```
 
+### Shells
+
+We provide minimal configuration for all shells proposed in the installation script
+first install all shells ( `paru -S fish bash zsh`).
+
+#### Zsh
+
+```bash
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
+
+echo; fastfetch; echo;
+```
+
+#### Bash
+
+Paste this in the `~/.bash_profile`.
+
+```bash
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook bash)"
+fi
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init bash)"
+fi
+
+echo; fastfetch; echo;
+```
+
+#### Fish
+
+Paste the following in the `~/.config/fish/config.fish`
+
+```fish
+if command -v starship > /dev/null 2>&1
+    starship init fish | source
+end
+if command -v direnv > /dev/null 2>&1
+    direnv hook fish | source
+end
+
+echo; fastfetch; echo;
+```
+
 ### Generate locale
-to generate locale, modify the `/etc/locale.gen` and uncomment your desired locale, then run `sudo locale-gen`
+
+To generate locale, modify the `/etc/locale.gen` and uncomment your desired locale, then run `sudo locale-gen`
+(for instance actual image uses `en_US.UTF-8 UTF-8`).
 
 ### Clearing cache
 
 > [!NOTE]
-> we advise clearing all cache and shell history before shipping, source that script to do so
->
+> We advise clearing all cache and shell history before shipping, source that script to do so.
 
 ```bash
 #! /usr/bin/env bash
