@@ -146,11 +146,11 @@ follow this [tutorial](https://wiki.archlinux.org/title/Install_Arch_Linux_on_WS
 ### User creation
 **create 2 users**: arch and login
 `useradd -m arch` (to create a home) and `useradd login`
-also add both users to the wheel group so they can use sudo 
+also add both users to the wheel group so they can use sudo
 ### Login set up
 
 now login as the arch user `su arch && cd ~`
-**install paru** 
+**install paru**
 ```bash
 sudo pacman -S --needed base-devel
 git clone https://aur.archlinux.org/paru.git
@@ -228,7 +228,7 @@ echo; fastfetch; echo;
 ```
 
 ### Fastfetch
-install fastfetch `paru -S fastfetch` and paste the following content in the `~/.config/fastfetch/config.jsonc` 
+install fastfetch `paru -S fastfetch` and paste the following content in the `~/.config/fastfetch/config.jsonc`
 > [!Note]
 > you will need the logo ascii art, you can generate it using `jp2a --width=45 --colors --color-depth=8 logo\ Avisto.png --chars=' ###'` command with the logo you can find [here](https://groupadvans.sharepoint.com/sites/IntranetADVANSGroup/SitePages/identite-visuelle.aspx)
 
@@ -270,10 +270,10 @@ install fastfetch `paru -S fastfetch` and paste the following content in the `~/
 to generate locale, modify the `/etc/locale.gen` and uncomment your desired locale, then run `sudo locale-gen`
 
 ### Clearing cache
-   
-> [!NOTE] 
+
+> [!NOTE]
 > we advise clearing all cache and shell history before shipping, source that script to do so
-> 
+>
 
 ```bash
 #! /usr/bin/env bash
@@ -285,4 +285,4 @@ sudo rm -rf /var/cache
 sudo rm -rf /var/log
 echo "" > ~/.bash_history
 history -c
-``` 
+```
