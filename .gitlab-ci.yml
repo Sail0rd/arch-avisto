@@ -16,17 +16,23 @@ include:
 .default:
   interruptible: true
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.go"
+        - "**/*.mod"
+        - "**/*.sum"
       variables:
         PACKAGE_VERSION: ${CI_COMMIT_SHORT_SHA}
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-.*)?$/
       variables:
         PACKAGE_VERSION: ${CI_COMMIT_TAG}
+    - if: $CI_PIPELINE_SOURCE == "web"
+      variables:
+        PACKAGE_VERSION: ${CI_COMMIT_SHORT_SHA}
 
 🚸 precommit:
   extends:
     - .precommit
-    - .default
 
 🛠️ build:
   stage: build
@@ -40,20 +46,10 @@ include:
     paths:
       - $PACKAGE_FILE
       - ${PACKAGE_FILE}.sha256
-  rules:
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
 
 🚀 publish:
   stage: publish
   extends: .default
-  rules:
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
   image: registry.gitlab.com/gitlab-ci-utils/curl-jq:3.0.4@sha256:51b1d34e833d541c3e7d4e5141c670e896ce8b9d110a0ca4b93c2fedc6c3d4b7
   script:
     # Push the package to the GitLab Packages registry
@@ -79,14 +75,6 @@ include:
   stage: release
   extends: .default
   image: registry.gitlab.com/gitlab-org/release-cli:v0.20.0@sha256:0cc9957c237cafd4bb6dc553c879a811787ccbc6bbf21d64fd7a5849a8d633ae
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-      variables:
-        PACKAGE_VERSION: ${CI_COMMIT_TAG}
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
   script:
     - |
       release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
