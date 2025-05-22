@@ -1,13 +1,12 @@
 stages:
   - precommit
   - build
-  - sign
   - publish
   - release
 
 variables:
   PACKAGE_FILE: "bootscript"
-  PACKAGE_SIGNATURE: "bootscript.sig"
+  PACKAGE_CHECKSUM: "${PACKAGE_CHECKSUM}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
 
 include:
@@ -18,17 +17,23 @@ include:
 .default:
   interruptible: true
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.go"
+        - "**/*.mod"
+        - "**/*.sum"
       variables:
         PACKAGE_VERSION: ${CI_COMMIT_SHORT_SHA}
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-.*)?$/
       variables:
         PACKAGE_VERSION: ${CI_COMMIT_TAG}
+    - if: $CI_PIPELINE_SOURCE == "web"
+      variables:
+        PACKAGE_VERSION: ${CI_COMMIT_SHORT_SHA}
 
 🚸 precommit:
   extends:
     - .precommit
-    - .default
 
 🛠️ build:
   stage: build
@@ -37,41 +42,15 @@ include:
   script:
     - go mod download
     - go build -o $PACKAGE_FILE
+    - sha256sum "$PACKAGE_FILE" > "${PACKAGE_CHECKSUM}"
   artifacts:
     paths:
       - $PACKAGE_FILE
-  rules:
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
-
-✒️ sign:
-  stage: sign
-  extends: .default
-  image: devopscrc/gpg-curl:v1@sha256:3b0d9b15478e7c5e9c7dd0778e4c9cfb748ec14152c9d8c3c913655ccdd9bd01
-  script:
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-    - gpg --batch --import $CI_PROJECT_DIR/.secure_files/gpg_private_key.asc
-    - gpg --batch --yes --detach-sign --armor -o $PACKAGE_SIGNATURE $PACKAGE_FILE
-  artifacts:
-    paths:
-      - $PACKAGE_SIGNATURE
-      - $PACKAGE_FILE
-  rules:
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
+      - ${PACKAGE_CHECKSUM}
 
 🚀 publish:
   stage: publish
   extends: .default
-  rules:
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
   image: registry.gitlab.com/gitlab-ci-utils/curl-jq:3.0.4@sha256:51b1d34e833d541c3e7d4e5141c670e896ce8b9d110a0ca4b93c2fedc6c3d4b7
   script:
     # Push the package to the GitLab Packages registry
@@ -83,30 +62,22 @@ include:
       else
         echo -e "\n\033[1;31mUpload of ${PACKAGE_FILE} failed\033[0m"
       fi
-    # Push the package signature to the GitLab Packages registry
+    # Push the package checksum to the GitLab Packages registry
     - |
-      echo -e "\n\033[1;33mUploading package signature: ${PACKAGE_SIGNATURE} to ${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\033[0m"
-      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_SIGNATURE} "${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}"
+      echo -e "\n\033[1;33mUploading package signature: ${PACKAGE_CHECKSUM} to ${PACKAGE_REGISTRY_URL}/${PACKAGE_CHECKSUM}/${PACKAGE_VERSION}/${PACKAGE_CHECKSUM}\033[0m"
+      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_CHECKSUM} "${PACKAGE_REGISTRY_URL}/${PACKAGE_CHECKSUM}/${PACKAGE_VERSION}/${PACKAGE_CHECKSUM}"
       if [ $? -eq 0 ]; then
-        echo -e "\n\033[1;32mUpload of ${PACKAGE_SIGNATURE} succeeded\033[0m"
+        echo -e "\n\033[1;32mUpload of ${PACKAGE_CHECKSUM} succeeded\033[0m"
       else
-        echo -e "\n\033[1;31mUpload of ${PACKAGE_SIGNATURE} failed\033[0m"
+        echo -e "\n\033[1;31mUpload of ${PACKAGE_CHECKSUM} failed\033[0m"
       fi
 
 📝 release:
   stage: release
   extends: .default
   image: registry.gitlab.com/gitlab-org/release-cli:v0.20.0@sha256:0cc9957c237cafd4bb6dc553c879a811787ccbc6bbf21d64fd7a5849a8d633ae
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-      variables:
-        PACKAGE_VERSION: ${CI_COMMIT_TAG}
-    - changes:
-        - "**/*.go"
-        - "**/*.mod"
-        - "**/*.sum"
   script:
     - |
       release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
         --assets-link "{\"name\":\"${PACKAGE_FILE}\",\"filepath\":\"/${PACKAGE_FILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_FILE}/${PACKAGE_VERSION}/${PACKAGE_FILE}\",\"link_type\": \"package\"}" \
-        --assets-link "{\"name\":\"${PACKAGE_SIGNATURE}\",\"filepath\":\"/${PACKAGE_SIGNATURE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_SIGNATURE}/${PACKAGE_VERSION}/${PACKAGE_SIGNATURE}\",\"link_type\": \"package\"}"
+        --assets-link "{\"name\":\"${PACKAGE_CHECKSUM}\",\"filepath\":\"/${PACKAGE_CHECKSUM}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_CHECKSUM}/${PACKAGE_VERSION}/${PACKAGE_CHECKSUM}\",\"link_type\": \"package\"}"
