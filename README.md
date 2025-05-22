@@ -158,7 +158,6 @@ Now login as the arch user `su arch && cd ~`.
 **Install paru** using the [documentation](https://github.com/Morganamilo/paru?tab=readme-ov-file#installation) (do it in `/tmp` or clean folder afterwards).
 
 Create a `/opt/startup` directory and put the `slogin` script found on the arch avisto repo.
-
 Then create a file named `gitlab_token` that will hold a token created with read right on the arch avisto repository.
 
 > [!Note]
