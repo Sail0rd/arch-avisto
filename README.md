@@ -282,7 +282,7 @@ echo; fastfetch; echo;
 ### Generate locale
 
 To generate locale, modify the `/etc/locale.gen` and uncomment your desired locale, then run `sudo locale-gen`
-(for instance actual image uses `en_US.UTF-8 UTF-8`).
+(for instance current image uses `en_US.UTF-8 UTF-8`).
 
 ### Clearing cache
 
