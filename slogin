@@ -47,7 +47,7 @@ echo -e "${BOLDCYAN}Verifying integrity...${ENDCOLOR}"
 # modifying the path of the file to check in the sha file
 sed -i 's/bootscript$/\/opt\/startup\/bootscript/' /opt/startup/bootscript.sha256
 
-if ! sha256sum --check /opt/startup/bootscript.sha256; then #>/dev/null 2>&1; then
+if ! sha256sum --quiet --check /opt/startup/bootscript.sha256; then
 	echo -e "${BOLDRED}[ERROR] integrity verification failed. Exiting...${ENDCOLOR}"
 	exit 1
 fi
