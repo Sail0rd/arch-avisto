@@ -7,7 +7,7 @@ BOLDMAGENTA="\e[1;35m"
 BOLDRED="\e[1;31m"
 BOLDORANGE="\e[1;38;2;255;165;0m"
 ENDCOLOR="\e[0m"
-export ARCHAVISTO_VERSION="2.1.0"
+export ARCHAVISTO_VERSION="2.1.2"
 
 set -e
 trap handle_error ERR
@@ -19,6 +19,13 @@ handle_error() {
 	exit 1
 }
 
+wait_unlock() {
+	# waiting for the file descriptor to be freed
+	while lsof $1 >/dev/null 2>&1; do
+		sleep 0.1
+	done
+}
+
 # gitlab_token must be present on the wsl image
 export GITLAB_TOKEN=$(cat /opt/startup/gitlab_token)
 
@@ -26,27 +33,36 @@ export GITLAB_TOKEN=$(cat /opt/startup/gitlab_token)
 # If you want to use direct link to a specific version, copy the links from the pipeline (publish job) or replace by "https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<version>/bootscript"
 
 echo -e "${BOLDCYAN}Downloading the bootscript...${ENDCOLOR}"
-curl --location --output /opt/startup/bootscript \
+curl --location --fail --output /opt/startup/bootscript \
 	--header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
 	"https://versioning.advans-group.com/api/v4/projects/1495/releases/permalink/latest/downloads/bootscript"
+# https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript/<version>/bootscript
 
-curl --location --output /opt/startup/bootscript.sig \
+curl --location --fail --output /opt/startup/bootscript.sha256 \
 	--header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
 	"https://versioning.advans-group.com/api/v4/projects/1495/releases/permalink/latest/downloads/bootscript.sha256"
+# https://versioning.advans-group.com/api/v4/projects/1495/packages/generic/bootscript.sha256/<version>/bootscript.sha256
 
 echo -e "${BOLDCYAN}Verifying integrity...${ENDCOLOR}"
+# modifying the path of the file to check in the sha file
+sed -i 's/bootscript$/\/opt\/startup\/bootscript/' /opt/startup/bootscript.sha256
 
-if sha256sum --check bootscript.sha256 >/dev/null 2>&1; then
+if ! sha256sum --check /opt/startup/bootscript.sha256; then #>/dev/null 2>&1; then
 	echo -e "${BOLDRED}[ERROR] integrity verification failed. Exiting...${ENDCOLOR}"
 	exit 1
 fi
 echo -e "${BOLDGREEN}Binary integrity verified successfully${ENDCOLOR}"
+
+wait_unlock "/opt/startup/bootscript"
+
 chmod +x /opt/startup/bootscript
 
-sudo sed -i "s/^PRETTY_NAME=.*/PRETTY_NAME=\"Arch Avisto v${ARCHAVISTO_VERSION}\"/" /etc/os-release
+wait_unlock "/opt/startup/bootscript"
 
 /opt/startup/bootscript
 /opt/startup/script.sh
+
+sudo sed -i "s/^PRETTY_NAME=.*/PRETTY_NAME=\"Arch Avisto v${ARCHAVISTO_VERSION}\"/" /etc/os-release
 
 echo -e "${BOLDGREEN}Installation complete${ENDCOLOR}"
 echo -e "${BOLDORANGE}[WARNING] Now you must restart WSL using the commands ${BOLDRED}wsl -t <distro-name> ${BOLDORANGE}and then ${BOLDRED}wsl -d <distro-name>${ENDCOLOR}"
