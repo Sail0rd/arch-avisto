@@ -12,7 +12,7 @@ const (
 	oldUsername        = "arch"
 	loginUsername      = "login"
 	skipFilename       = "/opt/startup/skip_bootscript"
-	bootscriptVersion  = "1.1.1"
+	bootscriptVersion  = "1.1.2"
 	scriptFilename     = "/opt/startup/script.sh"
 	testAddress        = "https://google.com"
 	versionEnvKey      = "ARCHAVISTO_VERSION"
