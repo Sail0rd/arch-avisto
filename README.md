@@ -155,7 +155,7 @@ Also add both users to the wheel group so they can use sudo (`usermod -aG wheel 
 
 Now login as the arch user `su arch && cd ~`.
 
-**Install paru** using the [documentation](https://github.com/Morganamilo/paru?tab=readme-ov-file#installation) (do it in /tmp preferably).
+**Install paru** using the [documentation](https://github.com/Morganamilo/paru?tab=readme-ov-file#installation) (do it in `/tmp` or clean folder afterwards).
 
 Create a `/opt/startup` directory and put the `slogin` script found on the arch avisto repo.
 
