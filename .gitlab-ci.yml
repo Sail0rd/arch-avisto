@@ -6,7 +6,7 @@ stages:
 
 variables:
   PACKAGE_FILE: "bootscript"
-  PACKAGE_CHECKSUM: "${PACKAGE_CHECKSUM}"
+  PACKAGE_CHECKSUM: "${PACKAGE_FILE}.sha256"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
 
 include:
@@ -64,7 +64,7 @@ include:
       fi
     # Push the package checksum to the GitLab Packages registry
     - |
-      echo -e "\n\033[1;33mUploading package signature: $PACKAGE_CHECKSUM to ${PACKAGE_REGISTRY_URL}/${PACKAGE_CHECKSUM}/${PACKAGE_VERSION}/${PACKAGE_CHECKSUM}\033[0m"
+      echo -e "\n\033[1;33mUploading package checksum: $PACKAGE_CHECKSUM to ${PACKAGE_REGISTRY_URL}/${PACKAGE_CHECKSUM}/${PACKAGE_VERSION}/${PACKAGE_CHECKSUM}\033[0m"
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${CI_PROJECT_DIR}/${PACKAGE_CHECKSUM} "${PACKAGE_REGISTRY_URL}/${PACKAGE_CHECKSUM}/${PACKAGE_VERSION}/${PACKAGE_CHECKSUM}"
       if [ $? -eq 0 ]; then
         echo -e "\n\033[1;32mUpload of ${PACKAGE_CHECKSUM} succeeded\033[0m"
