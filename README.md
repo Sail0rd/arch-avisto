@@ -165,7 +165,6 @@ Then create a file named `gitlab_token` that will hold a token created with read
 
 Once this is done, time to change the `/etc/passwd` file to modify the default
 shell of the login user to `/opt/startup/slogin`, do it by running `sudo chsh -s /opt/startup/slogin login`
-
 and modify the default user to be the login user in the `/etc/wsl.conf` file.
 
 ```
