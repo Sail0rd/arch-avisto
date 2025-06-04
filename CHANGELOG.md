@@ -10,3 +10,4 @@
 | 2.1.0              | 1.1.1              | recreate arch_avisto from an official wsl arch image                      |
 | 2.1.1              | 1.1.1              | added devbox binary into the image (nix will be installed by the binary)  |
 | 2.1.2              | 1.1.2              | changed signature verification with checksum to simplify installation     |
+| 2.1.3              | 1.1.2              | added docker compose by default and cleared all shells history            |
