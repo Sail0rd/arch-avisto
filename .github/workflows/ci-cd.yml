@@ -1,0 +1,86 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Or your default branch
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+    paths:
+      - '**/*.go'
+      - '**/*.mod'
+      - '**/*.sum'
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main  # Or your default branch
+    paths:
+      - '**/*.go'
+      - '**/*.mod'
+      - '**/*.sum'
+  workflow_dispatch:
+
+env:
+  PACKAGE_FILE: 'bootscript'
+  PACKAGE_CHECKSUM: '${{ env.PACKAGE_FILE }}.sha256'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  precommit:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.1
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: precommit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Get dependencies
+        run: go mod download
+      - name: Build
+        run: go build -o ${{ env.PACKAGE_FILE }}
+      - name: Generate checksum
+        run: sha256sum "${{ env.PACKAGE_FILE }}" > "${{ env.PACKAGE_CHECKSUM }}"
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-package
+          path: |
+            ${{ env.PACKAGE_FILE }}
+            ${{ env.PACKAGE_CHECKSUM }}
+          
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload assets to release
+        run: |
+          gh release upload ${{ github.ref_name }} ${{ env.PACKAGE_FILE }} ${{ env.PACKAGE_CHECKSUM }}
+        env:
+          GH_TOKEN: ${{ github.token }}
