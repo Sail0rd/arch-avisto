@@ -87,7 +87,7 @@ jobs:
           else
             # If it's not a tag, use the short commit SHA
             FULL_SHA="${{ github.sha }}"
-            VERSION=$(git rev-parse --short ${ FULL_SHA::7 })
+            VERSION=${FULL_SHA::7}
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Push package to GitHub Packages
