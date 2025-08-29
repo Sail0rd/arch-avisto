@@ -22,7 +22,7 @@ on:
 
 env:
   PACKAGE_FILE: 'bootscript'
-  PACKAGE_CHECKSUM: '${{ env.PACKAGE_FILE }}.sha256'
+  PACKAGE_CHECKSUM: 'bootscript.sha256'
 
 permissions:
   contents: write
