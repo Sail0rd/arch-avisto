@@ -86,7 +86,7 @@ jobs:
             VERSION="${{ github.ref_name }}"
           else
             # If it's not a tag, use the short commit SHA
-            VERSION="${{ github.sha::0:7 }}"
+            VERSION=$(git rev-parse --short ${{ github.sha }})
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Push package to GitHub Packages
