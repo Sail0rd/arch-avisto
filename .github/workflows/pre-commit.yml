@@ -1,0 +1,20 @@
+name: Pre-commit checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PACKAGE_FILE: "bootscript"
+  PACKAGE_CHECKSUM: "bootscript.sha256"
+
+jobs:
+  precommit:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.1
