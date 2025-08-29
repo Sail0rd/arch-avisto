@@ -12,3 +12,4 @@
 | 2.1.2              | 1.1.2              | changed signature verification with checksum to simplify installation     |
 | 2.1.3              | 1.1.2              | added docker compose by default and cleared all shells history            |
 | 2.1.4              | 1.1.2              | added docker buildkit package by default                                  |
+| 2.1.4              | 1.1.3              | move the project from gitlab to github                                    |
