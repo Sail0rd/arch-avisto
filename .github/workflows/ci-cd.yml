@@ -62,7 +62,7 @@ jobs:
           path: |
             ${{ env.PACKAGE_FILE }}
             ${{ env.PACKAGE_CHECKSUM }}
-          
+
   release:
     name: Release
     runs-on: ubuntu-latest
