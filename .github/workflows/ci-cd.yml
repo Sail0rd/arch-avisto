@@ -77,13 +77,22 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gh
+      - name: Set package version
+        id: set_version
+        run: |
+          # Check if the ref is a tag
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # If it's a tag, get the tag name (e.g., v1.2.3)
+            VERSION="${{ github.ref_name }}"
+          else
+            # If it's not a tag, use the short commit SHA
+            VERSION="${{ github.sha::0:7 }}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Push package to GitHub Packages
         run: |
-          # Use a dynamic version or a fixed string for the package version
-          # Here we use the run ID as a simple unique version
-          VERSION="${{ github.run_id }}"
           gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-          gh package upload ghcr.io/${{ github.repository }} --file ${{ env.PACKAGE_FILE }} --file ${{ env.PACKAGE_CHECKSUM }} --version "$VERSION"
+          gh package upload ghcr.io/${{ github.repository }} --file ${{ env.PACKAGE_FILE }} --file ${{ env.PACKAGE_CHECKSUM }} --version ${{ env.VERSION }}
         env:
           GH_TOKEN: ${{ github.token }}
 
