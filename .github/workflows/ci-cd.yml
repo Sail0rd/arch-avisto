@@ -92,10 +92,10 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Push package to GitHub Packages
         run: |
-          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
           gh package upload ghcr.io/${{ github.repository }} --file ${{ env.PACKAGE_FILE }} --file ${{ env.PACKAGE_CHECKSUM }} --version ${{ env.VERSION }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     name: Release
