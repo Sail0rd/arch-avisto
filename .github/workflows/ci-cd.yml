@@ -95,7 +95,7 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
           gh package upload ghcr.io/${{ github.repository }} --file ${{ env.PACKAGE_FILE }} --file ${{ env.PACKAGE_CHECKSUM }} --version ${{ env.VERSION }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     name: Release
